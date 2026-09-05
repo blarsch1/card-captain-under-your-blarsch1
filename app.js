@@ -1,14 +1,113 @@
 const SUPABASE_URL='https://prupedxpebntoqhilrzi.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_TZahmAv5GD3bv4LaHfma_w_i0daueMI';
-const tabs=[['home','🏠','Home'],['play','⚡','Play'],['cards','🃏','Cards'],['history','📚','History'],['tickets','🎟️','Tickets'],['rules','📜','Rules'],['admin','🛠️','Admin']];
+const AUTH_FUNCTION=`${SUPABASE_URL}/functions/v1/card-captain-auth`;
+const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+
+const managers=[
+  ['Karen Marek (Mom)','karen-marek'],['Nick Larscheid','nick-larscheid'],['Thomas Larscheid','thomas-larscheid'],['Brian Larscheid','brian-larscheid'],['Joseph Larscheid','joseph-larscheid'],['Adam Ibrahim','adam-ibrahim'],['Tyler Lant','tyler-lant'],['Zach Lant','zach-lant'],['Kenn Linehan','kenn-linehan'],['Ryan Dietz','ryan-dietz']
+];
+const baseTabs=[['home','🏠','Home'],['play','⚡','Play'],['cards','🃏','Cards'],['history','📚','History'],['tickets','🎟️','Tickets'],['rules','📜','Rules']];
+const adminTab=['admin','🛠️','Admin'];
+const privateScreens=new Set(['play','cards','history','admin']);
 let state={week:1,demo_mode:true,matchups:[],tickets:[]};
+let session=null;
+let profile=null;
+let authMode='signin';
 
 function esc(v=''){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function fmtScore(v){const n=Number(v);return Number.isFinite(n)?n.toFixed(1):'—'}
 function captainLabel(player1,player2,type){if(type==='dual_power'&&player2)return `${player1} + ${player2}`;return player1||'Captain pending'}
 function matchupCard(m,i){const a=Number(m.score_a),b=Number(m.score_b),aHas=Number.isFinite(a),bHas=Number.isFinite(b);const aWin=aHas&&bHas&&a>b,bWin=aHas&&bHas&&b>a;return `<article class="panel matchup-card"><div class="matchup-top"><span>MATCHUP ${i+1}</span><span>${state.demo_mode?'DEMO LIVE':esc(m.matchup_status||'LIVE').toUpperCase()}</span></div><div class="team-row ${aWin?'winner':''}"><div><div class="manager-name">${esc(m.manager_a)}</div><div class="captain-name">${esc(captainLabel(m.player_a,m.player_a_two,m.card_type_a))}</div></div><div class="score">${fmtScore(m.score_a)}</div></div><div class="team-row ${bWin?'winner':''}"><div><div class="manager-name">${esc(m.manager_b)}</div><div class="captain-name">${esc(captainLabel(m.player_b,m.player_b_two,m.card_type_b))}</div></div><div class="score">${fmtScore(m.score_b)}</div></div></article>`}
 function ticketCards(){return (state.tickets||[]).map((t,i)=>`<article class="panel ticket-card"><span>${i+1}. ${esc(t.name)}</span><span class="mini-ticket">🎟️ ${Number(t.tickets)||0}</span></article>`).join('')}
-function renderState(){document.getElementById('matchups').innerHTML=(state.matchups||[]).map(matchupCard).join('')||'<div class="panel">No matchups yet.</div>';document.getElementById('ticketsHome').innerHTML=ticketCards();document.getElementById('ticketsFull').innerHTML=ticketCards();const banner=document.querySelector('.preview-banner');if(banner)banner.textContent=`LIVE SUPABASE DATA · Week ${state.week||1} · ${state.demo_mode?'Demo scoring':'League scoring'} · Unused cards remain private`;const eyebrow=document.querySelector('.eyebrow');if(eyebrow)eyebrow.textContent=`WEEK ${state.week||1} · ${state.demo_mode?'DEMO MODE':String(state.week_status||'OPEN').toUpperCase()}`}
-async function loadLiveState(){try{const res=await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_public_card_captain_state`,{method:'POST',headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${SUPABASE_PUBLISHABLE_KEY}`,'Content-Type':'application/json'},body:'{}'});if(!res.ok)throw new Error(`Supabase ${res.status}`);const data=await res.json();if(data&&typeof data==='object'){state=data;renderState()}}catch(err){console.error('Live state load failed',err);const banner=document.querySelector('.preview-banner');if(banner)banner.textContent='LIVE DATA TEMPORARILY UNAVAILABLE · Showing app shell'} }
-function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.dataset.screen===id));document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.nav===id));history.replaceState(null,'',id==='home'?location.pathname:`#${id}`);window.scrollTo({top:0,behavior:'smooth'})}
-document.getElementById('bottomNav').innerHTML=tabs.map(t=>`<button class="nav-btn ${t[0]==='home'?'active':''}" data-nav="${t[0]}"><span class="ico">${t[1]}</span>${t[2]}</button>`).join('');document.addEventListener('click',e=>{const b=e.target.closest('[data-nav]');if(b)go(b.dataset.nav)});const initial=location.hash.slice(1);if(tabs.some(t=>t[0]===initial))go(initial);renderState();loadLiveState();setInterval(loadLiveState,30000);
+function myTickets(){if(!profile)return null;const row=(state.tickets||[]).find(t=>t.name===profile.display_name);return row?Number(row.tickets)||0:null}
+
+function renderState(){
+  document.getElementById('matchups').innerHTML=(state.matchups||[]).map(matchupCard).join('')||'<div class="panel">No matchups yet.</div>';
+  document.getElementById('ticketsHome').innerHTML=ticketCards();
+  document.getElementById('ticketsFull').innerHTML=ticketCards();
+  const banner=document.querySelector('.preview-banner');
+  if(banner)banner.textContent=`LIVE SUPABASE DATA · Week ${state.week||1} · ${state.demo_mode?'Demo scoring':'League scoring'} · Unused cards remain private`;
+  const eyebrow=document.querySelector('.eyebrow');
+  if(eyebrow)eyebrow.textContent=`WEEK ${state.week||1} · ${state.demo_mode?'DEMO MODE':String(state.week_status||'OPEN').toUpperCase()}`;
+  renderIdentity();
+}
+async function loadLiveState(){try{const res=await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_public_card_captain_state`,{method:'POST',headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${SUPABASE_PUBLISHABLE_KEY}`,'Content-Type':'application/json'},body:'{}'});if(!res.ok)throw new Error(`Supabase ${res.status}`);const data=await res.json();if(data&&typeof data==='object'){state=data;renderState()}}catch(err){console.error('Live state load failed',err);const banner=document.querySelector('.preview-banner');if(banner)banner.textContent='LIVE DATA TEMPORARILY UNAVAILABLE · Showing app shell'}}
+
+function currentTabs(){return profile?.is_commissioner?[...baseTabs,adminTab]:baseTabs}
+function renderNav(){const tabs=currentTabs();document.getElementById('bottomNav').style.gridTemplateColumns=`repeat(${tabs.length},1fr)`;document.getElementById('bottomNav').innerHTML=tabs.map(t=>`<button class="nav-btn ${t[0]==='home'?'active':''}" data-nav="${t[0]}"><span class="ico">${t[1]}</span>${t[2]}</button>`).join('')}
+function go(id){
+  if(privateScreens.has(id)&&!session){openAuth('signin');return}
+  if(id==='admin'&&!profile?.is_commissioner){id='home'}
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.dataset.screen===id));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.nav===id));
+  history.replaceState(null,'',id==='home'?location.pathname:`#${id}`);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function renderIdentity(){
+  const btn=document.getElementById('authButton');
+  const chip=document.getElementById('myTicketChip');
+  if(profile){btn.innerHTML=`${esc(profile.display_name)} <span>• ${profile.is_commissioner?'Commissioner':'Manager'}</span>`;btn.title='Tap to sign out';const t=myTickets();chip.innerHTML=`🎟️ <strong>${t===null?'—':t}</strong>`}
+  else{btn.textContent='Sign in / Claim account';btn.title='';chip.innerHTML='🎟️ <strong>—</strong>'}
+}
+
+function setAuthMode(mode){authMode=mode;document.querySelectorAll('.auth-tab').forEach(b=>b.classList.toggle('active',b.dataset.authMode===mode));document.getElementById('claimFields').hidden=mode!=='claim';document.getElementById('confirmPinLabel').hidden=mode!=='claim';document.getElementById('authSubmit').textContent=mode==='claim'?'Claim Account':'Sign In';setAuthMessage('')}
+function openAuth(mode='signin'){setAuthMode(mode);document.getElementById('authModal').hidden=false;document.body.classList.add('modal-open');setTimeout(()=>document.getElementById(mode==='claim'?'inviteCode':'pinInput').focus(),50)}
+function closeAuth(){document.getElementById('authModal').hidden=true;document.body.classList.remove('modal-open');setAuthMessage('')}
+function setAuthMessage(msg,ok=false){const el=document.getElementById('authMessage');el.textContent=msg;el.classList.toggle('ok',ok)}
+function selectedManager(){const slug=document.getElementById('managerSelect').value;return managers.find(m=>m[1]===slug)}
+function loginEmail(slug){return `${slug}@cardcaptain.app`}
+
+async function signIn(slug,pin){
+  const {data,error}=await client.auth.signInWithPassword({email:loginEmail(slug),password:pin});
+  if(error)throw new Error(error.message==='Invalid login credentials'?'Name or PIN is incorrect.':error.message);
+  return data.session;
+}
+async function claimAccount(slug,inviteCode,pin){
+  const res=await fetch(AUTH_FUNCTION,{method:'POST',headers:{apikey:SUPABASE_PUBLISHABLE_KEY,'Content-Type':'application/json'},body:JSON.stringify({action:'claim',login_slug:slug,invite_code:inviteCode,pin})});
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok)throw new Error(data.error||'Could not claim account.');
+  return data;
+}
+async function submitAuth(){
+  const manager=selectedManager();const pin=document.getElementById('pinInput').value.trim();
+  if(!manager)return setAuthMessage('Choose your name.');
+  if(!/^\d{6}$/.test(pin))return setAuthMessage('PIN must be exactly 6 digits.');
+  const button=document.getElementById('authSubmit');button.disabled=true;button.textContent='Working…';setAuthMessage('');
+  try{
+    if(authMode==='claim'){
+      const invite=document.getElementById('inviteCode').value.trim();const confirm=document.getElementById('confirmPinInput').value.trim();
+      if(pin!==confirm)throw new Error('PINs do not match.');
+      await claimAccount(manager[1],invite,pin);
+      await signIn(manager[1],pin);
+      setAuthMessage('Account claimed. You are signed in.',true);
+    }else await signIn(manager[1],pin);
+    setTimeout(closeAuth,450);
+  }catch(err){setAuthMessage(err.message||'Could not sign in.')}finally{button.disabled=false;button.textContent=authMode==='claim'?'Claim Account':'Sign In'}
+}
+
+async function loadProfile(){
+  if(!session?.user){profile=null;renderIdentity();renderNav();return}
+  const {data,error}=await client.from('manager_profiles').select('display_name,is_commissioner,login_slug,account_status').eq('auth_user_id',session.user.id).single();
+  if(error){console.error('Profile load failed',error);profile=null}else profile=data;
+  renderIdentity();renderNav();
+}
+async function handleSession(newSession){session=newSession;await loadProfile();const hash=location.hash.slice(1);if(hash==='admin'&&!profile?.is_commissioner)go('home')}
+
+function initAuthUI(){
+  document.getElementById('managerSelect').innerHTML=managers.map(m=>`<option value="${m[1]}">${esc(m[0])}</option>`).join('');
+  document.querySelectorAll('.auth-tab').forEach(b=>b.addEventListener('click',()=>setAuthMode(b.dataset.authMode)));
+  document.getElementById('authClose').addEventListener('click',closeAuth);
+  document.getElementById('authModal').addEventListener('click',e=>{if(e.target.id==='authModal')closeAuth()});
+  document.getElementById('authSubmit').addEventListener('click',submitAuth);
+  document.getElementById('pinInput').addEventListener('keydown',e=>{if(e.key==='Enter')submitAuth()});
+  document.getElementById('confirmPinInput').addEventListener('keydown',e=>{if(e.key==='Enter')submitAuth()});
+  document.getElementById('authButton').addEventListener('click',async()=>{if(session){if(confirm(`Sign out ${profile?.display_name||''}?`))await client.auth.signOut()}else openAuth('signin')});
+}
+
+renderNav();initAuthUI();renderState();
+document.addEventListener('click',e=>{const b=e.target.closest('[data-nav]');if(b)go(b.dataset.nav)});
+client.auth.getSession().then(({data})=>handleSession(data.session));
+client.auth.onAuthStateChange((_event,newSession)=>handleSession(newSession));
+const initial=location.hash.slice(1);if(baseTabs.some(t=>t[0]===initial)||initial==='admin')setTimeout(()=>go(initial),0);
+loadLiveState();setInterval(loadLiveState,30000);
