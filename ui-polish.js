@@ -3,7 +3,7 @@
   let timer=null;
 
   function formatRemaining(ms){
-    if(ms<=0)return '00:00:00';
+    if(ms<=0)return '00 HRS · 00 MIN · 00 SEC';
     const total=Math.floor(ms/1000);
     const days=Math.floor(total/86400);
     const hours=Math.floor((total%86400)/3600);
@@ -12,7 +12,7 @@
     const hh=String(hours).padStart(2,'0');
     const mm=String(minutes).padStart(2,'0');
     const ss=String(seconds).padStart(2,'0');
-    return days>0?`${days}D ${hh}:${mm}:${ss}`:`${hh}:${mm}:${ss}`;
+    return days>0?`${days} DAYS · ${hh} HRS · ${mm} MIN · ${ss} SEC`:`${hh} HRS · ${mm} MIN · ${ss} SEC`;
   }
 
   function ensureCountdown(){
