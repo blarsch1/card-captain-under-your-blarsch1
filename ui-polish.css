@@ -1,0 +1,8 @@
+/* Small launch-polish overrides */
+.hero:before{content:none!important}
+.hero .eyebrow{display:inline-flex;align-items:center;padding:5px 8px;border:1px solid rgba(109,231,255,.55);background:rgba(8,19,37,.55);font-size:14px!important;line-height:1;font-weight:1000;letter-spacing:1.7px;box-shadow:2px 2px 0 rgba(0,0,0,.45)}
+.hero-status-row{position:relative;z-index:3;display:flex;align-items:stretch;gap:8px;flex-wrap:wrap;margin-top:2px}
+.hero-status-row .live-badge{margin:0}
+.kickoff-countdown{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:6px 9px;border:2px solid var(--electric);background:#0e1a2d;color:#fff;box-shadow:3px 3px 0 #090910;font-size:10px;font-weight:1000;letter-spacing:.45px;text-transform:uppercase;white-space:nowrap}
+.kickoff-countdown strong{color:var(--yellow);font-family:Impact,"Arial Black",system-ui,sans-serif;font-size:14px;letter-spacing:.7px;font-weight:900}
+@media(max-width:420px){.hero-status-row{gap:7px}.live-badge,.kickoff-countdown{font-size:9px;padding:6px 7px}.kickoff-countdown strong{font-size:13px}}
