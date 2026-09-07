@@ -24,7 +24,7 @@
     const p2=side==='a'?m.player_a_two:m.player_b_two;
     const type=side==='a'?m.card_type_a:m.card_type_b;
     if(revealOpen()) return captainLabel(p1,p2,type);
-    return sideSubmitted(m,side)?'🔒 Captain submitted':'⏳ Captain pending';
+    return sideSubmitted(m,side)?'🔒 Captain submitted':'Captain pending';
   }
 
   matchupCard=function(m,i){
