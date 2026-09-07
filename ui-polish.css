@@ -1,9 +1,9 @@
 /* Small launch-polish overrides */
 .hero:before{content:none!important}
 .hero .eyebrow{display:inline-flex;align-items:center;padding:5px 8px;border:1px solid rgba(109,231,255,.55);background:rgba(8,19,37,.55);font-size:14px!important;line-height:1;font-weight:1000;letter-spacing:1.7px;box-shadow:2px 2px 0 rgba(0,0,0,.45)}
-.hero-callout{position:relative;z-index:3;display:inline-block;margin:2px 0 11px 8px;padding:5px 12px 6px;background:var(--yellow);color:#111018;border:2px solid #111018;box-shadow:4px 4px 0 var(--pink);font-family:Impact,"Arial Black",system-ui,sans-serif;font-size:clamp(18px,4.5vw,27px);font-weight:1000;line-height:1;letter-spacing:.7px;text-transform:uppercase;transform:rotate(-1.5deg)}
+.hero-callout{position:relative;z-index:3;display:inline-block;margin:2px 0 12px 0;padding:4px 12px 7px;background:var(--yellow);color:#111018;border:2px solid #111018;box-shadow:5px 5px 0 var(--pink);font-family:Impact,"Arial Black",system-ui,sans-serif;font-size:clamp(36px,8vw,68px);font-weight:1000;line-height:.95;letter-spacing:.5px;text-transform:uppercase;transform:none}
 .hero-status-row{position:relative;z-index:3;display:flex;align-items:stretch;gap:8px;flex-wrap:wrap;margin-top:2px}
 .hero-status-row .live-badge{margin:0}
 .kickoff-countdown{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:6px 9px;border:2px solid var(--electric);background:#0e1a2d;color:#fff;box-shadow:3px 3px 0 #090910;font-size:10px;font-weight:1000;letter-spacing:.45px;text-transform:uppercase;white-space:nowrap}
 .kickoff-countdown strong{color:var(--yellow);font-family:Impact,"Arial Black",system-ui,sans-serif;font-size:14px;letter-spacing:.7px;font-weight:900}
-@media(max-width:420px){.hero-callout{margin-left:4px;font-size:18px;padding:5px 9px}.hero-status-row{gap:7px}.live-badge,.kickoff-countdown{font-size:9px;padding:6px 7px}.kickoff-countdown strong{font-size:13px}}
+@media(max-width:420px){.hero-callout{font-size:clamp(30px,9vw,42px);padding:4px 8px 6px}.hero-status-row{gap:7px}.live-badge,.kickoff-countdown{font-size:9px;padding:6px 7px}.kickoff-countdown strong{font-size:13px}}
