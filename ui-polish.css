@@ -12,11 +12,30 @@
 .kickoff-countdown{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:7px 11px;border:2px solid var(--electric);background:#0e1a2d;color:#fff;box-shadow:3px 3px 0 #090910;font-size:12px;font-weight:1000;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap}
 .kickoff-countdown strong{color:var(--yellow);font-family:Impact,"Arial Black",system-ui,sans-serif;font-size:17px;letter-spacing:.75px;font-weight:900}
 
+/* Card Captain brand lockup */
+.brand-row{gap:14px;align-items:center}
+.brand-lockup{min-width:0}
+.rose-mark{position:relative;width:62px;height:68px;flex:0 0 62px;display:grid;place-items:center;background:linear-gradient(155deg,#151422 0%,#080912 100%);border:3px solid #f4c85a;border-radius:48% 48% 52% 52% / 30% 30% 68% 68%;box-shadow:inset 0 0 0 2px #7d5220,0 3px 0 #05050a,0 0 14px rgba(244,200,90,.18);transform:none;overflow:visible}
+.rose-mark:before{content:"";position:absolute;inset:5px;border:1px solid rgba(255,216,77,.48);border-radius:inherit}
+.brand-rose{position:relative;z-index:2;font-size:35px;line-height:1;filter:saturate(1.25) contrast(1.05) drop-shadow(0 2px 1px #000)}
+.brand-crown{position:absolute;z-index:3;top:-15px;left:50%;transform:translateX(-50%);font-size:23px;line-height:1;color:#ffd84d;text-shadow:0 2px 0 #7d5220,0 0 5px rgba(255,216,77,.45)}
+.brand-title{display:flex;align-items:baseline;gap:.22em;font-family:Georgia,"Times New Roman",serif;font-size:clamp(28px,5.4vw,43px);line-height:.92;font-weight:800;letter-spacing:.015em;text-transform:uppercase;white-space:nowrap;text-shadow:0 2px 0 #05050a,0 0 12px rgba(255,216,77,.08)}
+.brand-title span{font:inherit;font-size:1em;line-height:inherit}
+.brand-title span:first-child{color:#fff9e8}
+.brand-title span:last-child{color:#f4ce69}
+.brand-sub{margin-top:7px;color:var(--electric);font-size:clamp(9px,1.7vw,13px);font-weight:900;letter-spacing:.25em;line-height:1.1;text-transform:uppercase;white-space:nowrap}
+
 @media(max-width:640px){
   .hero{min-height:0;padding:20px 16px 18px!important;}
   .hero-slogan{margin:8px 0 14px;}
   .hero-status-row{margin-top:0;gap:10px;align-items:flex-start;}
   .hero-status-row .live-badge,.kickoff-countdown{width:max-content;max-width:100%;}
+  .brand-row{gap:11px}
+  .rose-mark{width:54px;height:59px;flex-basis:54px;border-width:2px}
+  .brand-rose{font-size:30px}
+  .brand-crown{top:-13px;font-size:20px}
+  .brand-title{font-size:clamp(25px,7.1vw,34px);gap:.18em}
+  .brand-sub{margin-top:6px;font-size:clamp(8px,2.3vw,10px);letter-spacing:.17em}
 }
 
 @media(max-width:420px){
@@ -27,4 +46,10 @@
   .live-badge{font-size:9px;padding:6px 7px;}
   .kickoff-countdown{font-size:11px;padding:7px 9px;min-height:37px;}
   .kickoff-countdown strong{font-size:16px;}
+  .brand-row{gap:9px}
+  .rose-mark{width:50px;height:55px;flex-basis:50px}
+  .brand-rose{font-size:28px}
+  .brand-crown{font-size:18px;top:-12px}
+  .brand-title{font-size:clamp(23px,6.8vw,29px);letter-spacing:0;gap:.16em}
+  .brand-sub{font-size:clamp(7px,2.1vw,9px);letter-spacing:.12em}
 }
