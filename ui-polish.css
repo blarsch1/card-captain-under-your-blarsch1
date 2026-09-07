@@ -25,6 +25,15 @@
 .brand-title span:last-child{color:#f4ce69}
 .brand-sub{margin-top:7px;color:var(--electric);font-size:clamp(9px,1.7vw,13px);font-weight:900;letter-spacing:.25em;line-height:1.1;text-transform:uppercase;white-space:nowrap}
 
+/* Bottom navigation polish */
+.bottom-nav{gap:4px;padding:5px 6px calc(5px + env(safe-area-inset-bottom));background:rgba(8,9,18,.97)}
+.nav-btn{min-height:64px;border-radius:9px;padding:7px 4px 6px;font-size:10.5px;letter-spacing:.12px;line-height:1.05;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.nav-btn .ico{font-size:23px;line-height:1;margin:0 0 3px;min-height:25px;display:flex;align-items:center;justify-content:center}
+.nav-btn:not([data-nav="play"]):active{background:rgba(255,255,255,.06);transform:translateY(1px)}
+.nav-btn[data-nav="play"]{min-height:64px}
+.nav-btn[data-nav="play"] .ico{font-size:25px}
+.nav-btn.active:not([data-nav="play"]){color:var(--yellow);background:rgba(255,216,77,.05)}
+
 @media(max-width:640px){
   .hero{min-height:0;padding:20px 16px 18px!important;}
   .hero-slogan{margin:8px 0 14px;}
@@ -36,6 +45,11 @@
   .brand-crown{top:-13px;font-size:20px}
   .brand-title{font-size:clamp(25px,7.1vw,34px);gap:.18em}
   .brand-sub{margin-top:6px;font-size:clamp(8px,2.3vw,10px);letter-spacing:.17em}
+  .bottom-nav{gap:3px;padding-left:5px;padding-right:5px}
+  .nav-btn{min-height:66px;font-size:11px;padding-left:3px;padding-right:3px}
+  .nav-btn .ico{font-size:24px;min-height:26px}
+  .nav-btn[data-nav="play"]{min-height:66px}
+  .nav-btn[data-nav="play"] .ico{font-size:26px}
 }
 
 @media(max-width:420px){
@@ -52,4 +66,9 @@
   .brand-crown{font-size:18px;top:-12px}
   .brand-title{font-size:clamp(23px,6.8vw,29px);letter-spacing:0;gap:.16em}
   .brand-sub{font-size:clamp(7px,2.1vw,9px);letter-spacing:.12em}
+  .bottom-nav{gap:2px;padding-left:4px;padding-right:4px}
+  .nav-btn{min-height:64px;font-size:10.5px;padding:6px 2px}
+  .nav-btn .ico{font-size:23px;min-height:25px}
+  .nav-btn[data-nav="play"]{min-height:64px}
+  .nav-btn[data-nav="play"] .ico{font-size:25px}
 }
