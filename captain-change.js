@@ -6,20 +6,25 @@ function captainDeadlineOpen(){
   return Number.isFinite(deadline)&&Date.now()<deadline;
 }
 
-function resetChangeMode(){
-  changingCaptain=false;
-  const form=document.getElementById('captainForm');
-  const submit=document.getElementById('captainSubmit');
-  if(submit)submit.textContent='⚡ Play Captain';
-  if(form)form.hidden=!!mySubmittedCaptain();
-  setCaptainMessage('');
-  resetCaptainForm();
-  renderPlayContext();
-}
-
 function mySubmittedCaptain(){
+  if(!profile)return null;
+
+  // Before the weekly reveal, the public matchup state intentionally hides
+  // Captain names. Use the manager's private card history first so the owner
+  // can still manage their own submitted Captain without exposing it publicly.
+  const privateCard=(myCards||[]).find(c=>Number(c.week_number)===Number(state.week));
+  if(privateCard){
+    return {
+      player_one:privateCard.player_one||privateCard.card_label||'Current Captain',
+      player_two:privateCard.player_two||null,
+      card_type:privateCard.card_type||'player',
+      opponent:privateCard.opponent||null
+    };
+  }
+
+  // After reveal, the public matchup state can also identify the Captain.
   const m=myCurrentMatchup();
-  if(!m||!profile)return null;
+  if(!m)return null;
   const mineIsA=m.manager_a===profile.display_name;
   const player=mineIsA?m.player_a:m.player_b;
   if(!player)return null;
@@ -36,18 +41,26 @@ function decorateChangeCaptain(){
   const form=document.getElementById('captainForm');
   if(!el||!form||!profile)return;
   const mine=mySubmittedCaptain();
+  const old=el.querySelector('#changeCaptainButton');
+  if(old)old.remove();
   if(!mine)return;
-  const existing=el.querySelector('#changeCaptainButton');
-  if(existing)existing.remove();
+
+  // A submitted Captain should stay hidden from the replacement form until the
+  // manager deliberately chooses to change it.
+  if(!changingCaptain)form.hidden=true;
+
   if(!captainDeadlineOpen()){
+    changingCaptain=false;
     form.hidden=true;
     return;
   }
+
   const btn=document.createElement('button');
   btn.id='changeCaptainButton';
   btn.type='button';
   btn.className='btn blue change-captain-btn';
   btn.textContent='↻ Change Captain';
+  btn.style.marginTop='10px';
   btn.addEventListener('click',()=>{
     changingCaptain=true;
     form.hidden=false;
@@ -64,6 +77,15 @@ const originalRenderPlayContext=renderPlayContext;
 renderPlayContext=function(){
   originalRenderPlayContext();
   setTimeout(decorateChangeCaptain,0);
+};
+
+// Re-run the decoration after the signed-in manager's private card history
+// arrives. This is what makes Change Captain available before the public reveal.
+const originalLoadMyCardsForChange=loadMyCards;
+loadMyCards=async function(){
+  const result=await originalLoadMyCardsForChange();
+  decorateChangeCaptain();
+  return result;
 };
 
 const originalSubmitCaptain=submitCaptain;
