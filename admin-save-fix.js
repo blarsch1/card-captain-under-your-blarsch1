@@ -33,7 +33,8 @@
           p_week_id:adminWeekId,
           p_player_name:player,
           p_ppr_score:value,
-          p_source:'sleeper'
+          // Database constraint allows demo, manual, or provider. Sleeper is our provider.
+          p_source:'provider'
         });
         if(error) throw error;
         saved++;
