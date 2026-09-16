@@ -1,6 +1,8 @@
 let sleeperScoreRefreshTimer=null;
+let publicStateRefreshTimer=null;
 let sleeperPlayerDirectory=null;
 let sleeperScoresLoading=false;
+let publicStateRefreshing=false;
 
 function sleeperNormalizeName(v=''){
   return String(v).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
@@ -65,6 +67,19 @@ function decorateSleeperScores(){
   });
 }
 
+async function refreshPublicStateSilently(){
+  if(publicStateRefreshing)return;
+  publicStateRefreshing=true;
+  try{
+    await loadLiveState();
+    await refreshPublicSleeperScores();
+  }catch(err){
+    console.warn('Automatic scoreboard refresh skipped',err);
+  }finally{
+    publicStateRefreshing=false;
+  }
+}
+
 async function refreshPublicSleeperScores(){
   if(sleeperScoresLoading)return;
   const requested=sleeperSubmittedNames();
@@ -75,7 +90,7 @@ async function refreshPublicSleeperScores(){
     const season=2026;
     const [byName,statsRes]=await Promise.all([
       sleeperDirectory(),
-      fetch(`https://api.sleeper.app/v1/stats/nfl/regular/${season}/${week}`)
+      fetch(`https://api.sleeper.app/v1/stats/nfl/regular/${season}/${week}`,{cache:'no-store'})
     ]);
     if(!statsRes.ok)throw new Error('Sleeper weekly stats unavailable');
     const stats=await statsRes.json();
@@ -91,8 +106,8 @@ async function refreshPublicSleeperScores(){
     (state.matchups||[]).forEach(m=>{
       const a=sleeperSideScore(m,'a',scoreByName);
       const b=sleeperSideScore(m,'b',scoreByName);
-      if(a!==null){m.score_a=a;m._sleeper_a=true;changed=true}else m._sleeper_a=false;
-      if(b!==null){m.score_b=b;m._sleeper_b=true;changed=true}else m._sleeper_b=false;
+      if(a!==null){if(m.score_a!==a||!m._sleeper_a)changed=true;m.score_a=a;m._sleeper_a=true}else m._sleeper_a=false;
+      if(b!==null){if(m.score_b!==b||!m._sleeper_b)changed=true;m.score_b=b;m._sleeper_b=true}else m._sleeper_b=false;
     });
     if(changed)renderState();
   }catch(err){
@@ -108,5 +123,13 @@ renderState=function(){
   decorateSleeperScores();
 };
 
-setTimeout(refreshPublicSleeperScores,1200);
-sleeperScoreRefreshTimer=setInterval(refreshPublicSleeperScores,60000);
+// Populate shortly after page load, then keep both saved commissioner scores
+// and live Sleeper scores moving without requiring a browser refresh.
+setTimeout(refreshPublicStateSilently,800);
+publicStateRefreshTimer=setInterval(refreshPublicStateSilently,15000);
+
+// Also refresh immediately when a manager returns to the tab/app.
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible')refreshPublicStateSilently();
+});
+window.addEventListener('focus',refreshPublicStateSilently);
