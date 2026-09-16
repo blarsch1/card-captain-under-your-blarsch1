@@ -17,6 +17,15 @@
     // Backend get_card_captain_week_number() owns rollover now.
     return Number(baseWeek||1);
   }
+  function activeDisplayStatus(){
+    // Stored week.status is administrative (future weeks remain locked).
+    // For the selected active week, the user-facing state follows its NFL kickoff deadline.
+    if(state?.deadline_at){
+      const deadline=new Date(state.deadline_at).getTime();
+      if(Number.isFinite(deadline))return Date.now()<deadline?'OPEN':'LOCKED';
+    }
+    return String(state?.week_status||'OPEN').toUpperCase();
+  }
   function applyCycle(){
     const p=phase();
     const base=Number(state.week||1);
@@ -24,7 +33,7 @@
     const eyebrow=document.querySelector('.hero .eyebrow');
     if(eyebrow){
       if(p==='review')eyebrow.textContent=`WEEK ${base} · REVIEW DAY`;
-      else eyebrow.textContent=`WEEK ${base} · ${String(state.week_status||'OPEN').toUpperCase()}`;
+      else eyebrow.textContent=`WEEK ${base} · ${activeDisplayStatus()}`;
     }
     const badge=document.querySelector('.live-badge');
     if(badge)badge.innerHTML=p==='review'?'<span class="live-dot"></span> TUESDAY · SCORE REVIEW':'<span class="live-dot"></span> LIVE · PPR SCOREBOARD';
@@ -51,7 +60,7 @@
   renderState=function(){priorRender();applyCycle()};
   const priorPlay=renderPlayContext;
   renderPlayContext=function(){priorPlay();applyCycle()};
-  window.cardCaptainWeeklyCycle={phase,cycleWeek,applyCycle};
+  window.cardCaptainWeeklyCycle={phase,cycleWeek,activeDisplayStatus,applyCycle};
   setInterval(applyCycle,60000);
   applyCycle();
 })();
