@@ -1,5 +1,5 @@
 // Card Captain weekly rhythm: Tue = commissioner review, Wed 6:00 AM CT = next week.
-// This is a presentation/week-selection layer only. It never finalizes matchups or moves tickets.
+// The database is the source of truth for the active week. This layer only presents the phase.
 (function(){
   const CT='America/Chicago';
   function ctParts(d=new Date()){
@@ -14,31 +14,32 @@
     return 'live';
   }
   function cycleWeek(baseWeek){
-    const {day,hour}=ctParts();
-    // Public RPC may still be on the prior DB week Tuesday/early Wednesday.
-    // At 6 AM CT Wednesday the UI advances one week if the backend has not yet done so.
-    if(day==='Wed'&&hour>=6)return Math.min(18,Number(baseWeek||1)+1);
+    // Backend get_card_captain_week_number() owns rollover now.
     return Number(baseWeek||1);
   }
   function applyCycle(){
     const p=phase();
     const base=Number(state.week||1);
-    const shown=cycleWeek(base);
     document.documentElement.dataset.weekPhase=p;
     const eyebrow=document.querySelector('.hero .eyebrow');
     if(eyebrow){
       if(p==='review')eyebrow.textContent=`WEEK ${base} · REVIEW DAY`;
-      else eyebrow.textContent=`WEEK ${shown} · ${String(state.week_status||'OPEN').toUpperCase()}`;
+      else eyebrow.textContent=`WEEK ${base} · ${String(state.week_status||'OPEN').toUpperCase()}`;
     }
     const badge=document.querySelector('.live-badge');
     if(badge)badge.innerHTML=p==='review'?'<span class="live-dot"></span> TUESDAY · SCORE REVIEW':'<span class="live-dot"></span> LIVE · PPR SCOREBOARD';
     const playHead=document.querySelector('[data-screen="play"] .section-head span');
     if(playHead)playHead.textContent=p==='review'?'Next week opens Wednesday at 6:00 AM CT':'Locks at first NFL kickoff';
+    const form=document.getElementById('captainForm');
     if(p==='review'){
-      const form=document.getElementById('captainForm');
       if(form)form.hidden=true;
       const ctx=document.getElementById('playContext');
       if(ctx)ctx.innerHTML=`<div><span class="play-kicker">WEEK ${base} · REVIEW DAY</span><strong>Commissioner score review</strong><small>Week ${base+1} opens Wednesday at 6:00 AM CT.</small></div>`;
+    }else if(form){
+      // Let the normal Play/Change Captain renderers decide whether a live-week form should be visible.
+      // Do not carry Tuesday's forced hidden state into Wednesday.
+      const hasCaptain=typeof mySubmittedCaptain==='function'&&mySubmittedCaptain();
+      form.hidden=!!hasCaptain;
     }
     const adminSummary=document.querySelector('.admin-summary');
     if(adminSummary&&p==='review'){
