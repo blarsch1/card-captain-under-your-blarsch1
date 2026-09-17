@@ -1,83 +1,17 @@
 // League + personal season history and played-card tracker.
 (function(){
-  let seasonHistory=[];
-  let leagueHistory=[];
-  let historyMode='league';
+  let seasonHistory=[];let leagueHistory=[];let historyMode='league';
   const resultLabel=r=>r==='win'?'WIN':r==='loss'?'LOSS':r==='tie_or_no_move'?'NO TICKET MOVE':'PENDING';
   const resultIcon=r=>r==='win'?'🏆':r==='loss'?'✕':r==='tie_or_no_move'?'🛡️':'⏳';
   const captain=(one,two,type)=>type==='dual_power'&&two?`${one} + ${two}`:(one||'No Captain');
+  const simpleType=t=>t==='dual_power'?'Dual':t==='autograph_defense'?'Defense':'Player';
   const ticket=v=>{const n=Number(v)||0;return n>0?`🎟️ +${n} ticket`:n<0?`🎟️ ${n} ticket`:'🎟️ No ticket moved'};
-
-  function ensureHistoryTabs(){
-    const el=document.getElementById('myHistory');if(!el)return;
-    const screen=el.closest('[data-screen="history"]');if(!screen)return;
-    let tabs=screen.querySelector('.league-history-tabs');
-    if(!tabs){
-      tabs=document.createElement('div');tabs.className='league-history-tabs';
-      tabs.innerHTML='<button type="button" data-history-mode="league">🏆 League History</button><button type="button" data-history-mode="mine">🃏 My History</button>';
-      el.parentNode.insertBefore(tabs,el);
-      tabs.addEventListener('click',e=>{const b=e.target.closest('[data-history-mode]');if(!b)return;historyMode=b.dataset.historyMode;renderHistory();});
-    }
-    tabs.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.historyMode===historyMode));
-  }
-
-  async function loadSeasonHistory(){
-    const el=document.getElementById('myHistory');
-    if(!session?.user||!profile){seasonHistory=[];leagueHistory=[];if(el)el.innerHTML='<div class="history-row"><strong>Sign in to see History.</strong></div>';return}
-    ensureHistoryTabs();
-    if(el)el.innerHTML='<div class="history-row"><strong>Loading season history…</strong></div>';
-    const [mine,league]=await Promise.all([client.rpc('get_my_card_captain_history'),client.rpc('get_card_captain_league_history')]);
-    if(mine.error)console.error('My history load failed',mine.error);else seasonHistory=Array.isArray(mine.data)?mine.data:[];
-    if(league.error)console.error('League history load failed',league.error);else leagueHistory=Array.isArray(league.data)?league.data:[];
-    if(mine.error&&league.error){el.innerHTML=`<div class="history-row"><strong>Could not load History.</strong><span>${esc(league.error.message||mine.error.message||'Try again.')}</span></div>`;return}
-    renderHistory();renderBurnedCards();
-  }
-
+  function ensureHistoryTabs(){const el=document.getElementById('myHistory');if(!el)return;const screen=el.closest('[data-screen="history"]');if(!screen)return;let tabs=screen.querySelector('.league-history-tabs');if(!tabs){tabs=document.createElement('div');tabs.className='league-history-tabs';tabs.innerHTML='<button type="button" data-history-mode="league">League History</button><button type="button" data-history-mode="mine">My History</button>';el.parentNode.insertBefore(tabs,el);tabs.addEventListener('click',e=>{const b=e.target.closest('[data-history-mode]');if(!b)return;historyMode=b.dataset.historyMode;renderHistory()})}tabs.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.historyMode===historyMode))}
+  async function loadSeasonHistory(){const el=document.getElementById('myHistory');if(!session?.user||!profile){seasonHistory=[];leagueHistory=[];if(el)el.innerHTML='<div class="history-row"><strong>Sign in to see History.</strong></div>';return}ensureHistoryTabs();if(el)el.innerHTML='<div class="history-row"><strong>Loading season history…</strong></div>';const [mine,league]=await Promise.all([client.rpc('get_my_card_captain_history'),client.rpc('get_card_captain_league_history')]);if(mine.error)console.error('My history load failed',mine.error);else seasonHistory=Array.isArray(mine.data)?mine.data:[];if(league.error)console.error('League history load failed',league.error);else leagueHistory=Array.isArray(league.data)?league.data:[];if(mine.error&&league.error){el.innerHTML=`<div class="history-row"><strong>Could not load History.</strong><span>${esc(league.error.message||mine.error.message||'Try again.')}</span></div>`;return}renderHistory();renderBurnedCards()}
   function renderHistory(){ensureHistoryTabs();if(historyMode==='mine')renderSeasonHistory();else renderLeagueHistory()}
-
-  function renderLeagueHistory(){
-    const el=document.getElementById('myHistory');if(!el)return;
-    if(!leagueHistory.length){el.innerHTML='<div class="history-row"><strong>No league history yet.</strong><span>Revealed weeks will appear here after kickoff.</span></div>';return}
-    const weeks=[...new Set(leagueHistory.map(h=>Number(h.week)))].sort((a,b)=>b-a);
-    el.classList.add('season-history','league-history');
-    el.innerHTML=weeks.map(week=>{
-      const games=leagueHistory.filter(h=>Number(h.week)===week);
-      return `<section class="league-week"><div class="league-week-head"><strong>WEEK ${week}</strong><span>${games.length} MATCHUPS</span></div>${games.map(leagueGame).join('')}</section>`;
-    }).join('');
-  }
-
-  function leagueGame(h){
-    const final=h.matchup_status==='final';
-    const aWin=final&&h.winner_manager_id===h.manager_a_id,bWin=final&&h.winner_manager_id===h.manager_b_id;
-    const aCap=captain(h.captain_a,h.player_a_two,h.card_type_a),bCap=captain(h.captain_b,h.player_b_two,h.card_type_b);
-    const moves=Array.isArray(h.ticket_movement)?h.ticket_movement:[];
-    let movement='🎟️ No ticket moved';
-    if(moves.length){const t=moves[moves.length-1];movement=`🎟️ ${esc(t.to_manager||'Winner')} stole ${Number(t.amount)||1} ticket${Number(t.amount)===1?'':'s'} from ${esc(t.from_manager||'opponent')}`}
-    else if(!final)movement='⏳ Awaiting finalization';
-    return `<article class="history-game league-game"><div class="league-team ${aWin?'winner':''}"><div><small>${aWin?'🏆 WINNER':'MANAGER'}</small><b>${esc(h.manager_a)}</b><span>${esc(aCap)} · ${esc(cardTypeLabel(h.card_type_a))}</span></div><strong class="league-score">${h.score_a==null?'—':fmtScore(h.score_a)}</strong></div><div class="league-vs">VS</div><div class="league-team ${bWin?'winner':''}"><div><small>${bWin?'🏆 WINNER':'MANAGER'}</small><b>${esc(h.manager_b)}</b><span>${esc(bCap)} · ${esc(cardTypeLabel(h.card_type_b))}</span></div><strong class="league-score">${h.score_b==null?'—':fmtScore(h.score_b)}</strong></div><div class="history-ticket">${movement}</div></article>`;
-  }
-
-  function renderSeasonHistory(){
-    const el=document.getElementById('myHistory');if(!el)return;
-    if(!seasonHistory.length){el.innerHTML='<div class="history-row"><strong>No completed Captain history yet.</strong><span>Played weeks will appear here after the deadline.</span></div>';return}
-    el.classList.add('season-history');
-    el.innerHTML=seasonHistory.map(h=>{
-      const mine=captain(h.my_captain,h.my_player_two,h.my_card_type),opp=captain(h.opponent_captain,h.opponent_player_two,h.opponent_card_type);
-      const myScore=h.my_score==null?'—':fmtScore(h.my_score),oppScore=h.opponent_score==null?'—':fmtScore(h.opponent_score),final=h.matchup_status==='final';
-      return `<article class="history-game ${esc(h.result||'pending')}"><div class="history-game-top"><span>WEEK ${Number(h.week)||'—'}</span><strong>${resultIcon(h.result)} ${resultLabel(h.result)}</strong></div><div class="history-versus"><div><small>YOUR CAPTAIN</small><b>${esc(mine)}</b><span>${esc(cardTypeLabel(h.my_card_type))}</span></div><div class="history-score"><b>${myScore}</b><em>VS</em><b>${oppScore}</b></div><div><small>${esc(h.opponent||'OPPONENT')}</small><b>${esc(opp)}</b><span>${esc(cardTypeLabel(h.opponent_card_type))}</span></div></div><div class="history-ticket">${final?ticket(h.ticket_change):'⏳ Awaiting finalization'}</div></article>`;
-    }).join('');
-  }
-
-  function renderBurnedCards(){
-    const el=document.getElementById('myCards');if(!el||!profile)return;
-    const used=(myCards||[]).filter(c=>c.week_number).sort((a,b)=>Number(b.week_number)-Number(a.week_number));
-    if(!used.length){el.innerHTML='<div class="panel">No cards burned yet. Once a physical card is played, it stays here for the season.</div>';return}
-    el.innerHTML=used.map(c=>{const h=seasonHistory.find(x=>Number(x.week)===Number(c.week_number));const res=h?resultLabel(h.result):String(c.submission_status||'PLAYED').toUpperCase();return `<article class="panel played-card burned-card">${c.photo_url?`<img src="${esc(c.photo_url)}" alt="${esc(c.card_label)} card photo" class="played-card-photo" />`:'<div class="played-card-photo missing-photo">🃏</div>'}<div class="played-card-body"><span class="play-kicker">🔥 BURNED · WEEK ${Number(c.week_number)}</span><h3>${esc(c.card_label)}</h3><strong>${esc(cardTypeLabel(c.card_type))}</strong><small>${c.opponent?`vs ${esc(c.opponent)} · `:''}${esc(res)}${c.total_score!=null?` · ${fmtScore(c.total_score)} PPR`:''}</small><small>This physical card cannot be played again this season.</small></div></article>`}).join('');
-  }
-
-  const baseRenderMyCards=renderMyCards;
-  renderMyCards=function(error=''){baseRenderMyCards(error);if(error||!session?.user||!profile)return;if(seasonHistory.length||leagueHistory.length){renderHistory();renderBurnedCards()}};
-  const baseGo=go;
-  go=function(id){baseGo(id);if((id==='history'||id==='cards')&&session?.user&&profile)setTimeout(loadSeasonHistory,0)};
-  window.cardCaptainSeasonHistory={reload:loadSeasonHistory};
+  function renderLeagueHistory(){const el=document.getElementById('myHistory');if(!el)return;if(!leagueHistory.length){el.innerHTML='<div class="history-row"><strong>No league history yet.</strong><span>Revealed weeks will appear here after kickoff.</span></div>';return}const weeks=[...new Set(leagueHistory.map(h=>Number(h.week)))].sort((a,b)=>b-a);el.className='league-history';el.innerHTML=weeks.map(week=>{const games=leagueHistory.filter(h=>Number(h.week)===week);return `<section class="league-week"><div class="league-week-head"><strong>WEEK ${week}</strong><span>${games.length} MATCHUPS</span></div><div class="league-table"><div class="league-table-head"><span>Manager</span><span>Captain</span><span>Pts</span></div>${games.map(leagueRows).join('')}</div></section>`}).join('')}
+  function leagueRows(h){const final=h.matchup_status==='final',aWin=final&&h.winner_manager_id===h.manager_a_id,bWin=final&&h.winner_manager_id===h.manager_b_id;const moves=Array.isArray(h.ticket_movement)?h.ticket_movement:[];let note=final?'No ticket moved':'Awaiting finalization';if(moves.length){const t=moves[moves.length-1];note=`${esc(t.to_manager||'Winner')} +${Number(t.amount)||1} ticket · ${esc(t.from_manager||'Opponent')} -${Number(t.amount)||1}`};const row=(name,cap,two,type,score,win)=>`<div class="league-table-row ${win?'winner':''}"><span class="lh-manager">${esc(name)}${win?'<b>W</b>':''}</span><span class="lh-captain">${esc(captain(cap,two,type))}<small>${simpleType(type)}</small></span><strong>${score==null?'—':fmtScore(score)}</strong></div>`;return `<div class="league-matchup">${row(h.manager_a,h.captain_a,h.player_a_two,h.card_type_a,h.score_a,aWin)}${row(h.manager_b,h.captain_b,h.player_b_two,h.card_type_b,h.score_b,bWin)}<div class="league-ticket-note">${note}</div></div>`}
+  function renderSeasonHistory(){const el=document.getElementById('myHistory');if(!el)return;if(!seasonHistory.length){el.innerHTML='<div class="history-row"><strong>No completed Captain history yet.</strong><span>Played weeks will appear here after the deadline.</span></div>';return}el.className='season-history';el.innerHTML=seasonHistory.map(h=>{const mine=captain(h.my_captain,h.my_player_two,h.my_card_type),opp=captain(h.opponent_captain,h.opponent_player_two,h.opponent_card_type);const myScore=h.my_score==null?'—':fmtScore(h.my_score),oppScore=h.opponent_score==null?'—':fmtScore(h.opponent_score),final=h.matchup_status==='final';return `<article class="history-game ${esc(h.result||'pending')}"><div class="history-game-top"><span>WEEK ${Number(h.week)||'—'}</span><strong>${resultIcon(h.result)} ${resultLabel(h.result)}</strong></div><div class="history-versus"><div><small>YOUR CAPTAIN</small><b>${esc(mine)}</b><span>${esc(cardTypeLabel(h.my_card_type))}</span></div><div class="history-score"><b>${myScore}</b><em>VS</em><b>${oppScore}</b></div><div><small>${esc(h.opponent||'OPPONENT')}</small><b>${esc(opp)}</b><span>${esc(cardTypeLabel(h.opponent_card_type))}</span></div></div><div class="history-ticket">${final?ticket(h.ticket_change):'⏳ Awaiting finalization'}</div></article>`}).join('')}
+  function renderBurnedCards(){const el=document.getElementById('myCards');if(!el||!profile)return;const used=(myCards||[]).filter(c=>c.week_number).sort((a,b)=>Number(b.week_number)-Number(a.week_number));if(!used.length){el.innerHTML='<div class="panel">No cards burned yet. Once a physical card is played, it stays here for the season.</div>';return}el.innerHTML=used.map(c=>{const h=seasonHistory.find(x=>Number(x.week)===Number(c.week_number));const res=h?resultLabel(h.result):String(c.submission_status||'PLAYED').toUpperCase();return `<article class="panel played-card burned-card">${c.photo_url?`<img src="${esc(c.photo_url)}" alt="${esc(c.card_label)} card photo" class="played-card-photo" />`:'<div class="played-card-photo missing-photo">🃏</div>'}<div class="played-card-body"><span class="play-kicker">🔥 BURNED · WEEK ${Number(c.week_number)}</span><h3>${esc(c.card_label)}</h3><strong>${esc(cardTypeLabel(c.card_type))}</strong><small>${c.opponent?`vs ${esc(c.opponent)} · `:''}${esc(res)}${c.total_score!=null?` · ${fmtScore(c.total_score)} PPR`:''}</small><small>This physical card cannot be played again this season.</small></div></article>`}).join('')}
+  const baseRenderMyCards=renderMyCards;renderMyCards=function(error=''){baseRenderMyCards(error);if(error||!session?.user||!profile)return;if(seasonHistory.length||leagueHistory.length){renderHistory();renderBurnedCards()}};const baseGo=go;go=function(id){baseGo(id);if((id==='history'||id==='cards')&&session?.user&&profile)setTimeout(loadSeasonHistory,0)};window.cardCaptainSeasonHistory={reload:loadSeasonHistory};
 })();
