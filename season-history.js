@@ -35,7 +35,22 @@
     }).join('');
   }
 
-  const oldGo=go;go=function(id){oldGo(id);if((id==='history'||id==='cards')&&session?.user&&profile)setTimeout(loadSeasonHistory,0)};
-  const oldLoadMyCards=loadMyCards;loadMyCards=async function(){await oldLoadMyCards();if(session?.user&&profile){if(seasonHistory.length)renderBurnedCards()}};
+  // app.js owns the original renderer and can run again after navigation/auth refresh.
+  // Wrap it once so the richer History remains authoritative after any later card reload.
+  const baseRenderMyCards=renderMyCards;
+  renderMyCards=function(error=''){
+    baseRenderMyCards(error);
+    if(error||!session?.user||!profile)return;
+    if(seasonHistory.length){renderSeasonHistory();renderBurnedCards();}
+  };
+
+  const baseGo=go;
+  go=function(id){
+    baseGo(id);
+    if((id==='history'||id==='cards')&&session?.user&&profile){
+      setTimeout(loadSeasonHistory,0);
+    }
+  };
+
   window.cardCaptainSeasonHistory={reload:loadSeasonHistory};
 })();
