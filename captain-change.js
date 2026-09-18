@@ -73,6 +73,10 @@ function decorateChangeCaptain(){
   el.appendChild(btn);
 }
 
+// Expose replacement mode so later UI wrappers (especially weekly-cycle.js)
+// do not hide the form again just because this manager already submitted a Captain.
+window.cardCaptainChangeMode={isChanging:()=>changingCaptain};
+
 const originalRenderPlayContext=renderPlayContext;
 renderPlayContext=function(){
   originalRenderPlayContext();
