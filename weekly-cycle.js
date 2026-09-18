@@ -48,7 +48,10 @@
       // Let the normal Play/Change Captain renderers decide whether a live-week form should be visible.
       // Do not carry Tuesday's forced hidden state into Wednesday.
       const hasCaptain=typeof mySubmittedCaptain==='function'&&mySubmittedCaptain();
-      form.hidden=!!hasCaptain;
+      const changing=window.cardCaptainChangeMode?.isChanging?.()===true;
+      // Once the manager deliberately enters replacement mode, keep the form visible.
+      // A submitted Captain should hide the normal Play form, not the Change Captain form.
+      form.hidden=!!hasCaptain&&!changing;
     }
     const adminSummary=document.querySelector('.admin-summary');
     if(adminSummary&&p==='review'){
