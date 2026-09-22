@@ -55,31 +55,37 @@
 .powered-line{isolation:isolate}
 .lightning-trail{
   position:absolute;
-  z-index:5;
+  z-index:20;
   top:50%;
-  left:-24px;
-  width:28px;
+  left:0;
+  width:30px;
   text-align:center;
-  font-size:27px;
+  font-size:28px;
   line-height:1;
   pointer-events:none;
   opacity:0;
-  text-shadow:0 0 5px #fff,0 0 10px #ffd84d;
-  animation:captainLightningSweep 2.2s linear infinite;
-  will-change:left,transform,opacity;
+  text-shadow:0 0 5px #fff,0 0 11px #ffd84d;
+  animation:captainLightningSweep 1.8s ease-in-out infinite !important;
+  -webkit-animation:captainLightningSweep 1.8s ease-in-out infinite !important;
+  will-change:transform,opacity;
 }
 @keyframes captainLightningSweep{
-  0%,35%{left:-24px;opacity:0;transform:translateY(-50%) rotate(-20deg) scale(.75)}
-  40%{opacity:1}
-  65%{opacity:1;transform:translateY(-50%) rotate(8deg) scale(1.2)}
-  82%{left:calc(100% + 2px);opacity:1;transform:translateY(-50%) rotate(20deg) scale(.9)}
-  86%,100%{left:calc(100% + 10px);opacity:0;transform:translateY(-50%) rotate(24deg) scale(.65)}
+  0%,25%{opacity:0;transform:translate3d(-24px,-50%,0) rotate(-18deg) scale(.75)}
+  30%{opacity:1}
+  65%{opacity:1;transform:translate3d(calc(100% + 110px),-50%,0) rotate(10deg) scale(1.2)}
+  80%{opacity:1;transform:translate3d(calc(100% + 190px),-50%,0) rotate(20deg) scale(.9)}
+  85%,100%{opacity:0;transform:translate3d(calc(100% + 210px),-50%,0) rotate(24deg) scale(.65)}
+}
+@-webkit-keyframes captainLightningSweep{
+  0%,25%{opacity:0;-webkit-transform:translate3d(-24px,-50%,0) rotate(-18deg) scale(.75)}
+  30%{opacity:1}
+  65%{opacity:1;-webkit-transform:translate3d(120px,-50%,0) rotate(10deg) scale(1.2)}
+  80%{opacity:1;-webkit-transform:translate3d(190px,-50%,0) rotate(20deg) scale(.9)}
+  85%,100%{opacity:0;-webkit-transform:translate3d(210px,-50%,0) rotate(24deg) scale(.65)}
 }
 @media(max-width:420px){
   .manager-line{gap:6px}
   .power-badge{min-width:54px;height:29px;padding:0 7px;font-size:13px}
   .power-badge .power-icon{font-size:17px}
 }
-@media (prefers-reduced-motion:reduce){
-  .lightning-trail{animation:none;display:none}
-}
+
