@@ -8,63 +8,78 @@
 @media(max-width:420px){.hero-line-one{font-size:clamp(27px,8vw,34px)}.hero-line-two{font-size:clamp(31px,9vw,39px)}.hero-line-three{font-size:clamp(34px,9.7vw,43px)}.hero-status-row{gap:9px}.live-badge{font-size:9px;padding:6px 7px}.kickoff-countdown{font-size:11px;padding:7px 9px;min-height:37px}.kickoff-countdown strong{font-size:16px}.brand-row{gap:9px}.rose-mark{width:50px;height:55px;flex-basis:50px}.brand-rose{font-size:28px}.brand-crown{font-size:18px;top:-12px}.brand-title{font-size:clamp(23px,6.8vw,29px);letter-spacing:0;gap:.16em}.brand-sub{font-size:clamp(7px,2.1vw,9px);letter-spacing:.12em}.bottom-nav{gap:2px;padding-left:4px;padding-right:4px}.nav-btn{min-height:64px;font-size:10.5px;padding:6px 2px}.nav-btn .ico{font-size:23px;min-height:25px}.nav-btn[data-nav="play"]{min-height:64px}.nav-btn[data-nav="play"] .ico{font-size:25px}.league-table-head,.league-table-row{grid-template-columns:minmax(90px,.95fr) minmax(105px,1.25fr) 42px;gap:6px}.league-table-row{padding:9px 8px}.league-table-head{padding:7px 8px}.lh-manager{font-size:12px}.lh-captain{font-size:12px}.league-score{font-size:18px}.league-ticket-note{padding-right:8px;font-size:10px}}
 
 
-/* Captain power-up badges: shown only after the weekly reveal. */
+/* Captain power-up badges: compact, readable, and animated after reveal. */
+.manager-line{
+  position:relative;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  width:max-content;
+  max-width:100%;
+  overflow:visible;
+}
+.manager-line .manager-name{white-space:nowrap}
 .power-badge{
+  position:relative;
+  z-index:4;
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  min-width:22px;
-  height:20px;
-  margin-left:5px;
-  padding:0 5px;
-  border:2px solid #090910;
-  border-radius:4px;
+  gap:4px;
+  flex:0 0 auto;
+  min-width:58px;
+  height:30px;
+  padding:0 8px;
+  border:2px solid #080910;
+  border-radius:7px;
   font-family:Impact,"Arial Black",system-ui,sans-serif;
-  font-size:11px;
+  font-size:14px;
   line-height:1;
-  vertical-align:2px;
-  box-shadow:2px 2px 0 #090910;
-  transform:rotate(-3deg);
+  letter-spacing:.7px;
+  box-shadow:3px 3px 0 #05050a;
+  transform:rotate(-2deg);
 }
-.power-dual{background:var(--yellow);color:#111;}
-.power-defense{background:var(--cyan);color:#07131a;}
-
-
-/* Bigger, clearer power-up badges + animated Dual lightning sweep. */
-.power-badge{
-  min-width:34px;
-  height:25px;
-  padding:0 7px;
-  margin-left:7px;
-  border-width:2px;
-  font-size:13px;
-  letter-spacing:.35px;
-  vertical-align:1px;
-  box-shadow:3px 3px 0 #090910;
+.power-badge .power-icon{font-size:18px;line-height:1}
+.power-dual{
+  background:linear-gradient(135deg,#fff36a,#ffb300);
+  color:#171100;
+  border-color:#fff0a3;
+  box-shadow:3px 3px 0 #ff3cac,0 0 12px rgba(255,216,77,.5);
 }
-.manager-name.powered-name{
-  position:relative;
-  display:inline-block;
-  overflow:visible;
+.power-defense{
+  background:linear-gradient(135deg,#70edff,#3b8cff);
+  color:#06101b;
+  border-color:#b9f7ff;
+  box-shadow:3px 3px 0 #6d3cff,0 0 12px rgba(56,189,248,.45);
 }
-.name-lightning{
+.powered-line{isolation:isolate}
+.lightning-trail{
   position:absolute;
-  z-index:3;
-  left:-12px;
+  z-index:5;
   top:50%;
-  pointer-events:none;
-  font-size:22px;
+  left:-24px;
+  width:28px;
+  text-align:center;
+  font-size:27px;
   line-height:1;
-  filter:drop-shadow(0 0 3px rgba(255,255,255,.9));
+  pointer-events:none;
   opacity:0;
-  animation:captainLightningSweep 2.8s ease-in-out infinite;
+  text-shadow:0 0 5px #fff,0 0 10px #ffd84d;
+  animation:captainLightningSweep 2.2s linear infinite;
+  will-change:left,transform,opacity;
 }
 @keyframes captainLightningSweep{
-  0%,55%{left:-12px;transform:translateY(-50%) rotate(-18deg) scale(.65);opacity:0}
-  60%{opacity:1}
-  78%{opacity:1;transform:translateY(-50%) rotate(10deg) scale(1.18)}
-  88%,100%{left:calc(100% + 6px);transform:translateY(-50%) rotate(22deg) scale(.7);opacity:0}
+  0%,35%{left:-24px;opacity:0;transform:translateY(-50%) rotate(-20deg) scale(.75)}
+  40%{opacity:1}
+  65%{opacity:1;transform:translateY(-50%) rotate(8deg) scale(1.2)}
+  82%{left:calc(100% + 2px);opacity:1;transform:translateY(-50%) rotate(20deg) scale(.9)}
+  86%,100%{left:calc(100% + 10px);opacity:0;transform:translateY(-50%) rotate(24deg) scale(.65)}
+}
+@media(max-width:420px){
+  .manager-line{gap:6px}
+  .power-badge{min-width:54px;height:29px;padding:0 7px;font-size:13px}
+  .power-badge .power-icon{font-size:17px}
 }
 @media (prefers-reduced-motion:reduce){
-  .name-lightning{animation:none;display:none}
+  .lightning-trail{animation:none;display:none}
 }
