@@ -27,6 +27,12 @@
     return sideSubmitted(m,side)?'🔒 Captain submitted':'Captain pending';
   }
 
+  function powerBadge(type){
+    if(type==='dual_power')return '<span class="power-badge power-dual" title="Dual Power card" aria-label="Dual Power card">⚡2</span>';
+    if(type==='autograph_defense')return '<span class="power-badge power-defense" title="Defense card" aria-label="Defense card">🛡</span>';
+    return '';
+  }
+
   matchupCard=function(m,i){
     const revealed=revealOpen();
     const a=Number(m.score_a),b=Number(m.score_b);
@@ -34,7 +40,7 @@
     const bHas=revealed&&m.score_b!==null&&m.score_b!==undefined&&Number.isFinite(b);
     const aWin=aHas&&bHas&&a>b,bWin=aHas&&bHas&&b>a;
     const status=revealed?(state.demo_mode?'DEMO LIVE':esc(m.matchup_status||'LIVE').toUpperCase()):'CAPTAINS HIDDEN';
-    return `<article class="panel matchup-card"><div class="matchup-top"><span>MATCHUP ${i+1}</span><span>${status}</span></div><div class="team-row ${aWin?'winner':''}"><div><div class="manager-name">${esc(m.manager_a)}</div><div class="captain-name">${esc(sideLabel(m,'a'))}</div></div><div class="score">${revealed?fmtScore(m.score_a):''}</div></div><div class="team-row ${bWin?'winner':''}"><div><div class="manager-name">${esc(m.manager_b)}</div><div class="captain-name">${esc(sideLabel(m,'b'))}</div></div><div class="score">${revealed?fmtScore(m.score_b):''}</div></div></article>`;
+    return `<article class="panel matchup-card"><div class="matchup-top"><span>MATCHUP ${i+1}</span><span>${status}</span></div><div class="team-row ${aWin?'winner':''}"><div><div class="manager-name">${esc(m.manager_a)} ${revealed?powerBadge(m.card_type_a):''}</div><div class="captain-name">${esc(sideLabel(m,'a'))}</div></div><div class="score">${revealed?fmtScore(m.score_a):''}</div></div><div class="team-row ${bWin?'winner':''}"><div><div class="manager-name">${esc(m.manager_b)} ${revealed?powerBadge(m.card_type_b):''}</div><div class="captain-name">${esc(sideLabel(m,'b'))}</div></div><div class="score">${revealed?fmtScore(m.score_b):''}</div></div></article>`;
   };
 
   renderPlayContext=function(){
