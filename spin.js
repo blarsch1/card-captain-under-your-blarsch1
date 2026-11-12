@@ -10,9 +10,17 @@
   const panel=document.createElement('div');panel.className='panel spin-admin';
   panel.innerHTML='<span class="play-kicker">🎰 PRIZE DRAWINGS</span><h3>Launch the Wheel of Destiny</h3><p>One prize, one secret winner, ticket-weighted odds. All managers can spin once to reveal their result. Tickets are not spent.</p><label>Prize name<input id="spinPrizeName" maxlength="120" placeholder="e.g. $25 gift card" /></label><button class="btn yellow" id="spinLaunch" type="button">🎟️ LAUNCH DRAWING</button><button class="btn blue" id="spinClose" type="button" hidden>Close Current Drawing</button><div id="spinAdminMessage" class="captain-message"></div>';
   admin.insertBefore(panel,document.getElementById('adminMatchups'));
-  let active=null,spinning=false;
+  let active=null,spinning=false,denialTimer=null;
   const $=id=>document.getElementById(id);
   const message=(s)=>{$('spinResult').textContent=s;};
+  function denySpin(){
+    const result=$('spinResult');
+    if(denialTimer)clearTimeout(denialTimer);
+    result.className='spin-result spin-denied';
+    result.innerHTML='<div class="denied-siren">🚨 ⛔ 🚨 ⛔ 🚨</div><strong>ACCESS DENIED</strong><div class="denied-sub">ZERO TICKETS. ZERO SPINS.</div><div class="denied-footer">NO TICKEY. NO SPINNY. GET OUTTA HERE.</div>';
+    $('spinWheel').classList.add('wheel-rejected');
+    denialTimer=setTimeout(()=>{$('spinWheel').classList.remove('wheel-rejected')},2600);
+  }
   const call=async(fn,args={})=>{const {data,error}=await client.rpc(fn,args);if(error)throw error;return data};
   async function refresh(){
     if(!session?.user||!profile){message('Sign in to spin.');return}
@@ -21,14 +29,16 @@
       $('spinPrize').textContent=active.active?'🏆 '+active.prize:'NO DRAWING ACTIVE';
       $('spinOdds').textContent=active.active?`YOUR TICKETS: ${active.tickets} / ${active.total_tickets} · ${active.total_tickets?((100*active.tickets/active.total_tickets).toFixed(1)):'0'}% ODDS`:'The commissioner has not launched a prize drawing.';
       $('spinTrigger').disabled=!active.active||active.spun||spinning;
+      $('spinTrigger').textContent=active.active&&Number(active.tickets)===0?'⛔ TRY YOUR LUCK (0 TICKETS) ⛔':'🎰 SPIN THE WHEEL 🎰';
       if(active.active&&active.spun){message(active.won?'🏆 YOU WON! YOU MAGNIFICENT BASTARD! 🎉':'YOU WON ABSOLUTELY NOTHING. PLEASE RETURN TO WORK. ☕');$('spinResult').className='spin-result '+(active.won?'spin-win':'spin-lose')}
-      else if(active.active){message('Your fate is sealed. Your spin is merely ceremonial.');$('spinResult').className='spin-result'}
+      else if(active.active){message(Number(active.tickets)===0?'You have zero tickets. Go ahead. Press it. I dare you.':'Your fate is sealed. Your spin is merely ceremonial.');$('spinResult').className='spin-result'}
       else {message('');$('spinResult').className='spin-result'}
       if(profile?.is_commissioner){$('spinClose').hidden=!active.active;$('spinLaunch').disabled=!!active.active}
     }catch(e){message('Could not load drawing: '+e.message)}
   }
   $('spinTrigger').addEventListener('click',async()=>{
     if(!active?.active||active.spun||spinning)return;
+    if(Number(active.tickets)===0){denySpin();return;}
     spinning=true;$('spinTrigger').disabled=true;message('THE WHEEL HAS SPOKEN… ALMOST.');
     try{
       const result=await call('spin_card_captain_prize',{p_drawing_id:active.id});
