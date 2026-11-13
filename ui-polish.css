@@ -130,3 +130,15 @@
 
 /* Keep the Wheel of Fantasy clean: no decorative WIN/LOSE text behind the hub. */
 .spin-wheel::after{content:none!important;display:none!important}
+
+/* Commissioner-only non-destructive wheel previews */
+.spin-practice{margin:30px auto 0;max-width:660px;padding:18px 12px;background:#10101e;border:3px dashed #57e4fa;box-shadow:5px 5px #ff3cac;text-align:center}
+.spin-practice[hidden]{display:none!important}
+.spin-practice-title{font-size:clamp(17px,3vw,25px);font-weight:1000;color:#ffe15c;letter-spacing:1px}
+.spin-practice p{color:#f0e9ff;font-size:13px;margin:10px 0 16px}
+.spin-practice-buttons{display:flex;flex-wrap:wrap;gap:9px;justify-content:center}
+.spin-practice-buttons button{cursor:pointer;flex:1 1 150px;padding:13px 9px;border:3px solid #09090e;background:#ffdc51;color:#0e0c16;box-shadow:3px 3px #ff3cac;font-size:14px;font-weight:1000}
+.spin-practice-buttons button:nth-child(2){background:#37c8f6}
+.spin-practice-buttons button:nth-child(3){background:#fa4d56;color:white}
+.spin-practice-buttons button:disabled{opacity:.5;cursor:wait}
+.spin-practice-note{margin-top:15px;font-size:11px;color:#7aefff;font-weight:900;letter-spacing:1px}
