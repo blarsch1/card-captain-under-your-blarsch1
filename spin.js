@@ -55,7 +55,7 @@
     if(won){
       result.innerHTML='<div class="spin-confetti">🎊 ✨ 🎉 💥 🏆 💥 🎉 ✨ 🎊</div><strong>YOU WON, YOU MAGNIFICENT BASTARD!</strong><div>🏆 '+esc(prize)+' 🏆</div><div class="spin-confetti">🎉 💰 🌹 🎉 💰 🌹 🎉</div>';
     }else{
-      result.innerHTML='<strong>YOU WON ABSOLUTELY NOTHING.</strong><div>☕ YEAH… I’M GONNA NEED YOU TO GO AHEAD AND COME IN ON SATURDAY.</div><small>— The Wheel of Fantasy</small>';
+      result.innerHTML='<strong>YOU WON ABSOLUTELY NOTHING.</strong><img class="spin-loser-gif" src="https://i.makeagif.com/media/3-31-2016/cE0QvT.gif" alt="Office Space losing reaction" loading="eager" onerror="this.style.display=\'none\';this.nextElementSibling.hidden=false"><a hidden class="spin-gif-fallback" href="https://makeagif.com/gif/milton-office-space-cE0QvT" target="_blank" rel="noopener noreferrer">WATCH THE OFFICE SPACE REACTION ↗</a><div>☕ YEAH… I’M GONNA NEED YOU TO GO AHEAD AND COME IN ON SATURDAY.</div><small>— The Wheel of Fantasy</small>';
     }
   }
   async function refresh(){
