@@ -8,7 +8,7 @@
   document.querySelector('main.content').appendChild(screen);
   const admin=document.querySelector('[data-screen="admin"]');
   const panel=document.createElement('div');panel.className='panel spin-admin';
-  panel.innerHTML='<span class="play-kicker">🎰 PRIZE DRAWINGS</span><h3>Launch the Wheel of Fantasy</h3><p>One prize, one secret winner, ticket-weighted odds. All managers can spin once to reveal their result. Tickets are not spent.</p><label>Prize name<input id="spinPrizeName" maxlength="120" placeholder="e.g. $25 gift card" /></label><button class="btn yellow" id="spinLaunch" type="button">🎟️ LAUNCH DRAWING</button><button class="btn blue" id="spinClose" type="button" hidden>Close Current Drawing</button><div id="spinAdminMessage" class="captain-message"></div>';
+  panel.innerHTML='<span class="play-kicker">🎰 PRIZE DRAWINGS</span><h3>Launch the Wheel of Fantasy</h3><p>One prize, one secret winner, ticket-weighted odds. All managers can spin once to reveal their result. Tickets are not spent.</p><label>Prize name<input id="spinPrizeName" maxlength="120" placeholder="e.g. $25 gift card" /></label><button class="btn yellow" id="spinLaunch" type="button">🎟️ LAUNCH DRAWING</button><button class="btn blue" id="spinClose" type="button" hidden>Close Current Drawing</button><div id="spinAdminMessage" class="captain-message"></div><div id="spinAdminStatus" class="spin-admin-status"><p>Drawing status will appear here.</p></div><button class="btn blue" id="spinRefreshStatus" type="button">↻ Refresh Spin Status</button>';
   admin.insertBefore(panel,document.getElementById('adminMatchups'));
   const practice=document.createElement('div');
   practice.className='spin-practice';
@@ -65,6 +65,23 @@
     }
     addOutcomeClose();
   }
+  async function refreshAdminStatus(){
+    if(!profile?.is_commissioner)return;
+    const el=$('spinAdminStatus');
+    try{
+      const data=await call('get_commissioner_prize_drawing_status');
+      if(!data.active){el.innerHTML='<p>No active drawing. Launch one above to lock in the winner and see spin activity.</p>';return;}
+      const entries=data.managers||[];
+      const spun=entries.filter(x=>x.spun).length;
+      el.innerHTML='<div class="spin-admin-winner"><small>🔒 COMMISSIONER ONLY · SECRET WINNER</small><strong>🏆 '+esc(data.winner)+'</strong><span>'+esc(data.prize)+'</span></div>'+
+        '<div class="spin-admin-count">🎰 '+spun+' / '+entries.length+' managers spun</div>'+
+        '<div class="spin-admin-roster">'+entries.map(x=>
+          '<div class="spin-admin-person"><span><strong>'+esc(x.manager)+'</strong><small>🎟️ '+Number(x.tickets)+' ticket'+(Number(x.tickets)===1?'':'s')+'</small></span>'+
+          (x.spun?'<b class="spin-admin-done">✓ SPUN</b>':Number(x.tickets)===0?'<b class="spin-admin-zero">⛔ 0 TICKETS</b>':'<b class="spin-admin-wait">⏳ NOT YET</b>')+
+          '</div>').join('')+'</div>';
+    }catch(e){el.textContent='Could not load drawing status: '+e.message;}
+  }
+  $('spinRefreshStatus').addEventListener('click',refreshAdminStatus);
   async function refresh(){
     practice.hidden=!profile?.is_commissioner;
     if(!session?.user||!profile){message('Sign in to spin.');return}
@@ -77,7 +94,7 @@
       if(active.active&&active.spun){if(!spinning&&!practiceRunning&&!resultDismissed)showSpinOutcome(active.won,active.prize)}
       else if(active.active&&!practiceRunning&&!resultDismissed){message(Number(active.tickets)===0?'You have zero tickets. Go ahead. Press it. I dare you.':'Your fate is sealed. Your spin is merely ceremonial.');$('spinResult').className='spin-result'}
       else if(!practiceRunning&&!resultDismissed){message('');$('spinResult').className='spin-result'}
-      if(profile?.is_commissioner){$('spinClose').hidden=!active.active;$('spinLaunch').disabled=!!active.active}
+      if(profile?.is_commissioner){$('spinClose').hidden=!active.active;$('spinLaunch').disabled=!!active.active;await refreshAdminStatus()}
     }catch(e){message('Could not load drawing: '+e.message)}
   }
   $('spinTrigger').addEventListener('click',async()=>{
