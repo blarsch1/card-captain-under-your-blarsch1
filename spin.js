@@ -92,7 +92,7 @@
       $('spinTrigger').disabled=!active.active||active.spun||spinning;
       $('spinTrigger').textContent=active.active&&Number(active.tickets)===0?'⛔ TRY YOUR LUCK (0 TICKETS) ⛔':'🎰 SPIN THE WHEEL 🎰';
       if(active.active&&active.spun){if(!spinning&&!practiceRunning&&!resultDismissed)showSpinOutcome(active.won,active.prize)}
-      else if(active.active&&!practiceRunning&&!resultDismissed){message(Number(active.tickets)===0?'You have zero tickets. Go ahead. Press it. I dare you.':'Your fate is sealed. Your spin is merely ceremonial.');$('spinResult').className='spin-result'}
+      else if(active.active&&!practiceRunning&&!resultDismissed){message(Number(active.tickets)===0?'You have zero tickets. Go ahead. Press it. I dare you.':'');$('spinResult').className='spin-result'}
       else if(!practiceRunning&&!resultDismissed){message('');$('spinResult').className='spin-result'}
       if(profile?.is_commissioner){$('spinClose').hidden=!active.active;$('spinLaunch').disabled=!!active.active;await refreshAdminStatus()}
     }catch(e){message('Could not load drawing: '+e.message)}
