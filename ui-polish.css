@@ -187,3 +187,18 @@
 @media(prefers-reduced-motion:reduce){
   .spin-result.spin-win,.spin-result.spin-denied{animation:none}
 }
+
+/* Commissioner prize-drawing status: private winner and spin checklist */
+.spin-admin-status{margin:18px 0 12px}
+.spin-admin-winner{padding:14px;border:3px solid #ffe052;background:#171029;box-shadow:4px 4px #fa36a2;display:flex;flex-direction:column;gap:4px}
+.spin-admin-winner small{color:#6ce9ff;font-size:11px;font-weight:900;letter-spacing:1px}
+.spin-admin-winner strong{font-size:clamp(23px,5vw,36px);color:#ffe052}
+.spin-admin-winner span{color:#f5f1ff;font-weight:800}
+.spin-admin-count{font-size:19px;font-weight:1000;color:#ffe052;margin:18px 0 10px}
+.spin-admin-roster{display:grid;gap:7px}
+.spin-admin-person{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#141327;border:1px solid #59487d;padding:10px 12px}
+.spin-admin-person span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.spin-admin-person strong{font-size:15px;color:#fff}
+.spin-admin-person small{font-size:12px;color:#c7badf}
+.spin-admin-person b{white-space:nowrap;font-size:12px}
+.spin-admin-done{color:#7df6ae}.spin-admin-wait{color:#ffe052}.spin-admin-zero{color:#ff8a92}
