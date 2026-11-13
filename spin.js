@@ -14,14 +14,18 @@
   practice.className='spin-practice';
   practice.innerHTML='<div class="spin-practice-title">🧪 COMMISSIONER PRACTICE MODE</div><p>Preview all three outcomes. No tickets, winners, or real drawings are affected.</p><div class="spin-practice-buttons"><button type="button" id="spinPracticeWin">🏆 TEST WINNER</button><button type="button" id="spinPracticeLose">☕ TEST LOSER</button><button type="button" id="spinPracticeDeny">⛔ TEST ZERO TICKETS</button></div><div class="spin-practice-note">PRACTICE ONLY · REPEAT AS OFTEN AS YOU WANT</div>';
   screen.querySelector('.spin-stage').appendChild(practice);
-  let active=null,spinning=false,denialTimer=null,practiceTimer=null,practiceRunning=false;
+  let active=null,spinning=false,denialTimer=null,practiceTimer=null,practiceRunning=false,resultDismissed=false;
   const $=id=>document.getElementById(id);
   const message=(s)=>{$('spinResult').textContent=s;};
+  function dismissOutcome(){resultDismissed=true;$('spinResult').className='spin-result';message('Result viewed.');}
+  function addOutcomeClose(){const b=document.createElement('button');b.type='button';b.className='spin-outcome-close';b.textContent='✕ CLOSE';b.addEventListener('click',dismissOutcome);$('spinResult').appendChild(b);}
   function denySpin(){
+    resultDismissed=false;
     const result=$('spinResult');
     if(denialTimer)clearTimeout(denialTimer);
     result.className='spin-result spin-denied';
     result.innerHTML='<div class="denied-siren">🚨 ⛔ 🚨 ⛔ 🚨</div><strong>ACCESS DENIED</strong><div class="denied-sub">ZERO TICKETS. ZERO SPINS.</div><div class="denied-footer">NO TICKEY. NO SPINNY. GET OUTTA HERE.</div>';
+    addOutcomeClose();
     $('spinWheel').classList.add('wheel-rejected');
     denialTimer=setTimeout(()=>{$('spinWheel').classList.remove('wheel-rejected')},2600);
   }
@@ -31,6 +35,7 @@
     const wheel=$('spinWheel');
     wheel.classList.remove('spin-rolling','wheel-rejected');
     if(kind==='deny'){denySpin();return;}
+    resultDismissed=false;
     practiceRunning=true;
     practice.querySelectorAll('button').forEach(b=>b.disabled=true);
     $('spinResult').className='spin-result';
@@ -50,13 +55,15 @@
   $('spinPracticeDeny').addEventListener('click',()=>practiceSpin('deny'));
   const call=async(fn,args={})=>{const {data,error}=await client.rpc(fn,args);if(error)throw error;return data};
   function showSpinOutcome(won,prize){
+    resultDismissed=false;
     const result=$('spinResult');
     result.className='spin-result '+(won?'spin-win':'spin-lose');
     if(won){
       result.innerHTML='<div class="spin-confetti">🎊 ✨ 🎉 💥 🏆 💥 🎉 ✨ 🎊</div><strong>YOU WON, YOU MAGNIFICENT BASTARD!</strong><div>🏆 '+esc(prize)+' 🏆</div><div class="spin-confetti">🎉 💰 🌹 🎉 💰 🌹 🎉</div>';
     }else{
-      result.innerHTML='<strong>YOU WON ABSOLUTELY NOTHING.</strong><img class="spin-loser-gif" src="https://i.makeagif.com/media/3-31-2016/cE0QvT.gif" alt="Office Space losing reaction" loading="eager" onerror="this.style.display=\'none\';this.nextElementSibling.hidden=false"><a hidden class="spin-gif-fallback" href="https://makeagif.com/gif/milton-office-space-cE0QvT" target="_blank" rel="noopener noreferrer">WATCH THE OFFICE SPACE REACTION ↗</a><div>Here, let me just go ahead and get that ticket from you.</div><small>— The Wheel of Fantasy</small>';
+      result.innerHTML='<strong>YOU WON ABSOLUTELY NOTHING.</strong><img class="spin-loser-gif" src="https://i.makeagif.com/media/3-31-2016/cE0QvT.gif" alt="Office Space losing reaction" loading="eager" onerror="this.style.display=\'none\';this.nextElementSibling.hidden=false"><a hidden class="spin-gif-fallback" href="https://makeagif.com/gif/milton-office-space-cE0QvT" target="_blank" rel="noopener noreferrer">WATCH THE OFFICE SPACE REACTION ↗</a><div>Here, let me just go ahead and get that ticket from you.</div>';
     }
+    addOutcomeClose();
   }
   async function refresh(){
     practice.hidden=!profile?.is_commissioner;
@@ -67,15 +74,16 @@
       $('spinOdds').textContent=active.active?`YOUR TICKETS: ${active.tickets} / ${active.total_tickets} · ${active.total_tickets?((100*active.tickets/active.total_tickets).toFixed(1)):'0'}% ODDS`:'The commissioner has not launched a prize drawing.';
       $('spinTrigger').disabled=!active.active||active.spun||spinning;
       $('spinTrigger').textContent=active.active&&Number(active.tickets)===0?'⛔ TRY YOUR LUCK (0 TICKETS) ⛔':'🎰 SPIN THE WHEEL 🎰';
-      if(active.active&&active.spun){if(!spinning&&!practiceRunning)showSpinOutcome(active.won,active.prize)}
-      else if(active.active&&!practiceRunning){message(Number(active.tickets)===0?'You have zero tickets. Go ahead. Press it. I dare you.':'Your fate is sealed. Your spin is merely ceremonial.');$('spinResult').className='spin-result'}
-      else if(!practiceRunning){message('');$('spinResult').className='spin-result'}
+      if(active.active&&active.spun){if(!spinning&&!practiceRunning&&!resultDismissed)showSpinOutcome(active.won,active.prize)}
+      else if(active.active&&!practiceRunning&&!resultDismissed){message(Number(active.tickets)===0?'You have zero tickets. Go ahead. Press it. I dare you.':'Your fate is sealed. Your spin is merely ceremonial.');$('spinResult').className='spin-result'}
+      else if(!practiceRunning&&!resultDismissed){message('');$('spinResult').className='spin-result'}
       if(profile?.is_commissioner){$('spinClose').hidden=!active.active;$('spinLaunch').disabled=!!active.active}
     }catch(e){message('Could not load drawing: '+e.message)}
   }
   $('spinTrigger').addEventListener('click',async()=>{
     if(!active?.active||active.spun||spinning)return;
     if(Number(active.tickets)===0){denySpin();return;}
+    resultDismissed=false;
     spinning=true;$('spinTrigger').disabled=true;message('THE WHEEL HAS SPOKEN… ALMOST.');
     try{
       const result=await call('spin_card_captain_prize',{p_drawing_id:active.id});
