@@ -127,3 +127,6 @@
 @keyframes denialFlash{0%,100%{background:#f00909;color:#fff}50%{background:#fff;color:#e00000}}
 @keyframes denialShake{from{transform:translateX(-6px) rotate(-2deg)}to{transform:translateX(6px) rotate(2deg)}}
 @media(prefers-reduced-motion:reduce){.spin-denied,.denied-siren,.wheel-rejected{animation:none}}
+
+/* Keep the Wheel of Fantasy clean: no decorative WIN/LOSE text behind the hub. */
+.spin-wheel::after{content:none!important;display:none!important}
