@@ -4,7 +4,7 @@
   privateScreens.add('spin');
   const screen=document.createElement('section');
   screen.className='screen';screen.dataset.screen='spin';
-  screen.innerHTML='<div class="spin-stage"><div class="spin-kicker">ROSE PREHALL PRESENTS</div><h2>THE WHEEL OF DESTINY</h2><p class="spin-tagline">ONE PRIZE. TEN DREAMS. NINE DISAPPOINTMENTS.</p><div id="spinPrize" class="spin-prize">Loading the prize vault…</div><div class="wheel-wrap"><div class="wheel-pointer">▼</div><div class="spin-wheel" id="spinWheel"><div class="wheel-center">🌹<small>SPIN</small></div></div></div><div id="spinOdds" class="spin-odds"></div><button class="btn yellow spin-trigger" id="spinTrigger" type="button" disabled>🎰 SPIN THE WHEEL 🎰</button><div id="spinResult" class="spin-result" aria-live="polite"></div></div>';
+  screen.innerHTML='<div class="spin-stage"><div class="spin-kicker">ROSE PREHALL PRESENTS</div><h2>WHEEL OF FANTASY</h2><div id="spinPrize" class="spin-prize">Loading the prize vault…</div><div class="wheel-wrap"><div class="wheel-pointer">▼</div><div class="spin-wheel" id="spinWheel"><div class="wheel-center">🌹<small>SPIN</small></div></div></div><div id="spinOdds" class="spin-odds"></div><button class="btn yellow spin-trigger" id="spinTrigger" type="button" disabled>🎰 SPIN THE WHEEL 🎰</button><div id="spinResult" class="spin-result" aria-live="polite"></div></div>';
   document.querySelector('main.content').appendChild(screen);
   const admin=document.querySelector('[data-screen="admin"]');
   const panel=document.createElement('div');panel.className='panel spin-admin';
