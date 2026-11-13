@@ -22,6 +22,15 @@
     denialTimer=setTimeout(()=>{$('spinWheel').classList.remove('wheel-rejected')},2600);
   }
   const call=async(fn,args={})=>{const {data,error}=await client.rpc(fn,args);if(error)throw error;return data};
+  function showSpinOutcome(won,prize){
+    const result=$('spinResult');
+    result.className='spin-result '+(won?'spin-win':'spin-lose');
+    if(won){
+      result.innerHTML='<div class="spin-confetti">🎊 ✨ 🎉 💥 🏆 💥 🎉 ✨ 🎊</div><strong>YOU WON, YOU MAGNIFICENT BASTARD!</strong><div>🏆 '+esc(prize)+' 🏆</div><div class="spin-confetti">🎉 💰 🌹 🎉 💰 🌹 🎉</div>';
+    }else{
+      result.innerHTML='<strong>YOU WON ABSOLUTELY NOTHING.</strong><div>☕ YEAH… I’M GONNA NEED YOU TO GO AHEAD AND COME IN ON SATURDAY.</div><small>— The Wheel of Fantasy</small>';
+    }
+  }
   async function refresh(){
     if(!session?.user||!profile){message('Sign in to spin.');return}
     try{
@@ -30,7 +39,7 @@
       $('spinOdds').textContent=active.active?`YOUR TICKETS: ${active.tickets} / ${active.total_tickets} · ${active.total_tickets?((100*active.tickets/active.total_tickets).toFixed(1)):'0'}% ODDS`:'The commissioner has not launched a prize drawing.';
       $('spinTrigger').disabled=!active.active||active.spun||spinning;
       $('spinTrigger').textContent=active.active&&Number(active.tickets)===0?'⛔ TRY YOUR LUCK (0 TICKETS) ⛔':'🎰 SPIN THE WHEEL 🎰';
-      if(active.active&&active.spun){message(active.won?'🏆 YOU WON! YOU MAGNIFICENT BASTARD! 🎉':'YOU WON ABSOLUTELY NOTHING. PLEASE RETURN TO WORK. ☕');$('spinResult').className='spin-result '+(active.won?'spin-win':'spin-lose')}
+      if(active.active&&active.spun){if(!spinning)showSpinOutcome(active.won,active.prize)}
       else if(active.active){message(Number(active.tickets)===0?'You have zero tickets. Go ahead. Press it. I dare you.':'Your fate is sealed. Your spin is merely ceremonial.');$('spinResult').className='spin-result'}
       else {message('');$('spinResult').className='spin-result'}
       if(profile?.is_commissioner){$('spinClose').hidden=!active.active;$('spinLaunch').disabled=!!active.active}
@@ -45,10 +54,8 @@
       const wheel=$('spinWheel');wheel.classList.remove('spin-rolling');void wheel.offsetWidth;wheel.classList.add('spin-rolling');
       setTimeout(()=>{
         spinning=false;wheel.classList.remove('spin-rolling');
-        $('spinResult').className='spin-result '+(result.won?'spin-win':'spin-lose');
-        if(result.won){$('spinResult').innerHTML='<div class="spin-confetti">🎊 ✨ 🎉 💥 🏆 💥 🎉 ✨ 🎊</div><strong>YOU WON, YOU MAGNIFICENT BASTARD!</strong><div>🏆 '+esc(result.prize)+' 🏆</div><div class="spin-confetti">🎉 💰 🌹 🎉 💰 🌹 🎉</div>'}
-        else{$('spinResult').innerHTML='<strong>YOU WON ABSOLUTELY NOTHING.</strong><div>☕ YEAH… I’M GONNA NEED YOU TO GO AHEAD AND COME IN ON SATURDAY.</div><small>— The Wheel of Destiny</small>'}
-        refresh().then(()=>{if(result.won){$('spinResult').innerHTML='<div class="spin-confetti">🎊 ✨ 🎉 💥 🏆 💥 🎉 ✨ 🎊</div><strong>YOU WON, YOU MAGNIFICENT BASTARD!</strong><div>🏆 '+esc(result.prize)+' 🏆</div>'}});
+        showSpinOutcome(result.won,result.prize);
+        refresh();
       },6500);
     }catch(e){spinning=false;$('spinTrigger').disabled=false;message('Spin failed: '+e.message)}
   });
